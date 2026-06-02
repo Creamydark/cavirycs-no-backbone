@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cavirycs</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    // Enable dark mode support in Tailwind and map the custom colors
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyan: {
+              400: '#00f57d', /* Your custom neon green */
+              500: '#00d66c', 
+              600: '#00a352', /* Slightly darker variant for light mode contrast */
+            }
+          }
+        }
+      }
+    }
+    
+    // Check local storage or system preference to prevent white flash
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else if (localStorage.getItem('theme') === 'light') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark'); // Default to dark for this app
+    }
+  </script>
+
+  <style>
+    .hidden { display: none !important; }
+    
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+    .dark ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
+    .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+    
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+    .dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    /* The immersive background - adjusts gradients based on mode */
+    .app-bg {
+      background-image: linear-gradient(to right, rgba(248, 250, 252, 0.95) 0%, rgba(248, 250, 252, 0.75) 100%), url('https://images.unsplash.com/photo-1493225457124-a1a2a5956093?auto=format&fit=crop&q=80&w=2000');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    .dark .app-bg {
+      background-image: linear-gradient(to right, rgba(17, 17, 17, 0.95) 0%, rgba(17, 17, 17, 0.7) 100%), url('https://images.unsplash.com/photo-1493225457124-a1a2a5956093?auto=format&fit=crop&q=80&w=2000');
+    }
+  </style>
+</head>
+
+<body class="h-screen bg-zinc-50 dark:bg-neutral-900 text-zinc-900 dark:text-neutral-200 font-sans flex overflow-hidden selection:bg-cyan-500/30 transition-colors duration-300">
+
+  <!-- Sidebar -->
+  <aside class="w-20 sm:w-64 bg-white/70 dark:bg-black/60 backdrop-blur-xl border-r border-black/5 dark:border-white/5 flex flex-col h-full flex-shrink-0 transition-all duration-300 z-30">
+    <!-- Logo -->
+    <div class="h-24 flex flex-col sm:flex-row items-center justify-center sm:justify-start sm:px-8 pt-2 sm:pt-0">
+      <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-[3px] sm:border-4 border-cyan-500 flex items-center justify-center shadow-[0_0_15px_rgba(0,245,125,0.4)] flex-shrink-0"></div>
+      <span class="block mt-2 sm:mt-0 sm:ml-4 font-light text-[10px] sm:text-2xl tracking-widest text-zinc-800 dark:text-white leading-none">CAVI<span class="font-bold text-cyan-600 dark:text-cyan-400">RYCS</span></span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 mt-8 flex flex-col space-y-2">
+      <!-- Section Title -->
+      <div class="hidden sm:block px-8 mb-2">
+        <h2 class="text-xs font-semibold text-zinc-500 dark:text-neutral-500 tracking-widest uppercase">Menu</h2>
+      </div>
+      
+      <!-- Search Tab -->
+      <button id="tab-search" title="Search" class="w-full flex items-center px-0 sm:px-8 py-4 border-l-4 border-cyan-500 text-cyan-600 dark:text-cyan-400 bg-black/5 dark:bg-white/5 transition-all group">
+        <div class="w-full flex flex-col sm:flex-row justify-center sm:justify-start items-center sm:space-x-4 space-y-1 sm:space-y-0">
+          <i data-lucide="search" class="w-6 h-6 group-hover:scale-110 transition-transform"></i>
+          <span class="text-[10px] font-medium tracking-widest uppercase sm:normal-case sm:text-lg sm:font-light sm:tracking-wide">Search</span>
+        </div>
+      </button>
+
+      <!-- Bookmarks Tab -->
+      <button id="tab-bookmarks" title="Your Collection" class="w-full flex items-center px-0 sm:px-8 py-4 border-l-4 border-transparent text-zinc-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all group relative">
+        <div class="w-full flex flex-col sm:flex-row justify-center sm:justify-start items-center sm:space-x-4 space-y-1 sm:space-y-0">
+          <i data-lucide="disc" class="w-6 h-6 group-hover:scale-110 transition-transform"></i>
+          <span class="text-[10px] font-medium tracking-widest uppercase sm:normal-case sm:text-lg sm:font-light sm:tracking-wide text-center leading-none mt-1 sm:mt-0">Vault</span>
+        </div>
+        <span id="bookmark-count" class="absolute top-2 right-2 sm:relative sm:top-0 sm:right-0 sm:ml-auto bg-cyan-500 text-black text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+      </button>
+
+      <!-- About Tab -->
+      <button id="tab-about" title="About Project" class="w-full flex items-center px-0 sm:px-8 py-4 border-l-4 border-transparent text-zinc-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all group">
+        <div class="w-full flex flex-col sm:flex-row justify-center sm:justify-start items-center sm:space-x-4 space-y-1 sm:space-y-0">
+          <i data-lucide="info" class="w-6 h-6 group-hover:scale-110 transition-transform"></i>
+          <span class="text-[10px] font-medium tracking-widest uppercase sm:normal-case sm:text-lg sm:font-light sm:tracking-wide text-center leading-none mt-1 sm:mt-0">About</span>
+        </div>
+      </button>
+    </nav>
+    
+    <!-- Theme Toggle Area -->
+    <div class="mt-auto border-t border-black/5 dark:border-white/5">
+      <button id="theme-toggle" title="Toggle Theme" class="w-full flex items-center px-0 sm:px-8 py-6 text-zinc-500 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all group">
+        <div class="w-full flex flex-col sm:flex-row justify-center sm:justify-start items-center sm:space-x-4 space-y-1 sm:space-y-0">
+          <i id="theme-icon" data-lucide="moon" class="w-6 h-6 group-hover:scale-110 transition-transform"></i>
+          <span id="theme-text" class="text-[10px] font-medium tracking-widest uppercase sm:normal-case sm:text-lg sm:font-light sm:tracking-wide text-center leading-none mt-1 sm:mt-0">Dark Mode</span>
+        </div>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 h-full overflow-y-auto app-bg relative">
+    
+    <!-- Top Right Buttons (Desktop only) -->
+    <div class="absolute top-6 right-8 hidden md:flex space-x-4 z-20">
+      <button class="px-6 py-2 bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 backdrop-blur-md text-zinc-800 dark:text-white rounded-sm text-sm font-light tracking-wider transition-colors border border-black/10 dark:border-white/10">Log in</button>
+      <button class="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-black rounded-sm text-sm font-semibold tracking-wider transition-colors shadow-[0_0_15px_rgba(0,245,125,0.3)]">Sign up</button>
+    </div>
+
+    <!-- SEARCH VIEW -->
+    <div id="view-search" class="min-h-full flex flex-col justify-center items-center px-6 lg:px-24 py-16 transition-all duration-500 w-full">
+      
+      <!-- Hero Section -->
+      <div id="hero-section" class="text-center mb-12 max-w-4xl mx-auto transition-all duration-500 w-full">
+        <h1 class="text-4xl md:text-6xl font-light text-zinc-900 dark:text-white leading-tight tracking-wide mb-4">
+          Discover the lyrics of your <br/>
+          <span class="font-normal italic text-zinc-600 dark:text-neutral-300">favorite artists</span>
+        </h1>
+        <p class="text-zinc-500 dark:text-neutral-400 text-lg tracking-wide hidden md:block mx-auto">Search for any song, artist, or album to uncover the words behind the music.</p>
+      </div>
+      
+      <div class="max-w-4xl w-full mx-auto">
+        <form id="search-form" class="relative group">
+          <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+            <i data-lucide="search" class="w-5 h-5 text-zinc-400 dark:text-neutral-400 group-focus-within:text-cyan-600 dark:group-focus-within:text-cyan-400 transition-colors"></i>
+          </div>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search for a song or artist..."
+            class="w-full pl-14 pr-32 py-5 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-black/10 dark:border-white/10 rounded-full focus:outline-none focus:border-cyan-500/50 focus:bg-white/80 dark:focus:bg-white/10 text-lg text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-neutral-500 shadow-2xl transition-all"
+            required
+            autocomplete="off"
+          />
+          <div id="loading-spinner" class="absolute right-32 top-5 text-cyan-600 dark:text-cyan-400 hidden">
+            <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
+          </div>
+          <button type="submit" id="search-btn" class="absolute right-2 top-2 bottom-2 bg-cyan-500 hover:bg-cyan-400 text-black px-6 rounded-full font-semibold tracking-wide transition-colors">
+            Search
+          </button>
+
+          <!-- Suggestions Dropdown -->
+          <ul id="suggestions-dropdown" class="absolute z-50 w-full bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl shadow-2xl mt-2 max-h-60 overflow-auto divide-y divide-black/5 dark:divide-white/5 hidden text-left">
+            <!-- Rendered via JS -->
+          </ul>
+        </form>
+      </div>
+
+      <!-- Error Message -->
+      <div id="error-msg" class="max-w-3xl w-full mx-auto mt-6 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center space-x-3 backdrop-blur-md hidden">
+        <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
+        <p id="error-text"></p>
+      </div>
+
+      <!-- Search Result Container -->
+      <div id="result-container" class="hidden mt-12 max-w-4xl w-full mx-auto bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden animate-in fade-in duration-700 text-left">
+        <div class="p-8 border-b border-black/5 dark:border-white/5 flex justify-between items-start bg-gradient-to-b from-black/5 dark:from-white/5 to-transparent">
+          <div>
+            <h3 id="result-title" class="text-3xl font-light text-zinc-900 dark:text-white tracking-wide mb-2"></h3>
+            <p id="result-artist" class="text-cyan-600 dark:text-cyan-400 text-lg font-medium flex items-center space-x-2 tracking-wider">
+              <i data-lucide="mic" class="w-4 h-4"></i>
+              <span></span>
+            </p>
+          </div>
+          <button id="save-btn" class="flex items-center space-x-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white px-5 py-2.5 rounded-full font-light tracking-wide transition-colors">
+            <i data-lucide="bookmark-plus" class="w-5 h-5 text-cyan-600 dark:text-cyan-400"></i>
+            <span class="hidden sm:inline">Save Lyrics</span>
+          </button>
+        </div>
+        <div class="p-8 md:p-12">
+          <pre id="result-lyrics" class="whitespace-pre-wrap font-sans text-zinc-700 dark:text-neutral-300 leading-loose text-lg"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOOKMARKS VIEW -->
+    <div id="view-bookmarks" class="px-6 lg:px-24 py-16 hidden w-full">
+      
+      <!-- LIST VIEW -->
+      <div id="vault-list-view" class="max-w-6xl mx-auto w-full transition-all duration-500">
+        <div class="flex items-center justify-between mb-12">
+          <h2 class="text-4xl font-light text-zinc-900 dark:text-white tracking-wide">Your Collection</h2>
+        </div>
+
+        <div id="empty-bookmarks" class="text-center py-24 bg-black/5 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/5 hidden">
+          <div class="w-20 h-20 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i data-lucide="disc" class="w-10 h-10 text-cyan-600/50 dark:text-cyan-400/50"></i>
+          </div>
+          <h3 class="text-2xl font-light text-zinc-900 dark:text-white tracking-wide">Your vault is empty</h3>
+          <p class="text-zinc-500 dark:text-neutral-500 mt-2 tracking-wide">Search for songs and add them to your collection.</p>
+        </div>
+
+        <div id="bookmarks-list" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- SINGLE VIEWER -->
+      <div id="vault-viewer-view" class="max-w-4xl mx-auto w-full hidden animate-in fade-in duration-500 text-left">
+        <button id="viewer-back-btn" class="flex items-center space-x-2 text-zinc-500 dark:text-neutral-400 hover:text-cyan-600 dark:hover:text-cyan-400 mb-8 transition-colors group">
+          <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+          <span class="font-medium tracking-wide">Back to Collection</span>
+        </button>
+
+        <div class="bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+          <div class="p-8 border-b border-black/5 dark:border-white/5 flex justify-between items-start bg-gradient-to-b from-black/5 dark:from-white/5 to-transparent">
+            <div>
+              <h3 id="viewer-title" class="text-3xl md:text-4xl font-light text-zinc-900 dark:text-white tracking-wide mb-2 capitalize"></h3>
+              <p id="viewer-artist" class="text-cyan-600 dark:text-cyan-400 text-lg font-medium flex items-center space-x-2 tracking-wider capitalize">
+                <i data-lucide="mic" class="w-4 h-4"></i>
+                <span></span>
+              </p>
+            </div>
+            <button id="viewer-delete-btn" class="flex items-center space-x-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-600 dark:text-red-400 px-5 py-2.5 rounded-full font-light tracking-wide transition-colors">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+              <span class="hidden sm:inline">Remove</span>
+            </button>
+          </div>
+          
+          <div class="p-8 bg-black/5 dark:bg-black/20 border-b border-black/5 dark:border-white/5">
+            <div class="flex justify-between items-center mb-3">
+              <h4 class="font-semibold text-zinc-500 dark:text-neutral-500 text-xs uppercase tracking-widest">Your Notes</h4>
+              <button id="viewer-edit-btn" class="text-zinc-500 dark:text-neutral-500 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors" title="Edit Note">
+                <i data-lucide="edit-3" class="w-5 h-5"></i>
+              </button>
+            </div>
+            <p id="viewer-notes" class="text-zinc-700 dark:text-neutral-300 text-base italic bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-black/5 dark:border-white/5"></p>
+            <div id="viewer-date" class="mt-4 text-[10px] text-zinc-500 dark:text-neutral-600 tracking-widest uppercase"></div>
+          </div>
+
+          <div class="p-8 md:p-12">
+            <pre id="viewer-lyrics" class="whitespace-pre-wrap font-sans text-zinc-700 dark:text-neutral-300 leading-loose text-lg"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT VIEW -->
+    <div id="view-about" class="px-6 lg:px-24 py-16 hidden w-full">
+      <div class="max-w-6xl mx-auto w-full">
+        <div class="flex items-center justify-between mb-12">
+          <h2 class="text-4xl font-light text-zinc-900 dark:text-white tracking-wide">About This Project</h2>
+        </div>
+
+        <!-- Project Overview & Team -->
+        <div class="bg-white/60 dark:bg-black/40 backdrop-blur-lg rounded-2xl border border-black/10 dark:border-white/5 overflow-hidden mb-8 shadow-2xl">
+          <div class="p-8 md:p-10 border-b border-black/5 dark:border-white/5 bg-gradient-to-r from-black/5 dark:from-white/5 to-transparent">
+            <h3 class="text-3xl font-light text-cyan-600 dark:text-cyan-400 mb-4 tracking-wide">School Project</h3>
+            <p class="text-zinc-700 dark:text-neutral-300 leading-relaxed text-lg max-w-4xl">
+              This web application was developed as a collaborative school project by our team. The primary goal was to demonstrate modern UI design, asynchronous API integration, and persistent CRUD (Create, Read, Update, Delete) operations using browser storage.
+            </p>
+          </div>
+          <div class="p-8 md:p-10">
+            <h4 class="text-xs font-semibold text-zinc-500 dark:text-neutral-500 tracking-widest uppercase mb-8">Team Members</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <!-- Member 1 -->
+              <div class="text-center group">
+                <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-cyan-500/10 to-blue-600/10 dark:from-cyan-500/20 dark:to-blue-600/20 border border-black/10 dark:border-white/10 flex items-center justify-center mb-4 group-hover:border-cyan-500/50 group-hover:scale-105 transition-all p-1">
+                    <img src="member_profile/brix_dp.jpg" alt="Brixter Alonzo" onerror="this.onerror=null; this.src='https://placehold.co/150x150/111111/00f57d?text=BA'" class="w-full h-full rounded-full object-cover shadow-sm">
+                </div>
+                <h5 class="text-zinc-900 dark:text-white font-medium text-lg tracking-wide">Brixter Alonzo</h5>
+                <p class="text-sm text-zinc-500 dark:text-neutral-500 mt-1">Developer</p>
+              </div>
+              <!-- Member 2 -->
+              <div class="text-center group">
+                <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-cyan-500/10 to-blue-600/10 dark:from-cyan-500/20 dark:to-blue-600/20 border border-black/10 dark:border-white/10 flex items-center justify-center mb-4 group-hover:border-cyan-500/50 group-hover:scale-105 transition-all p-1">
+                    <img src="member_profile/marc_dp.jpg" alt="Marc Luis Segunto" onerror="this.onerror=null; this.src='https://placehold.co/150x150/111111/00f57d?text=MS'" class="w-full h-full rounded-full object-cover shadow-sm">
+                </div>
+                <h5 class="text-zinc-900 dark:text-white font-medium text-lg tracking-wide">Marc Luis Segunto</h5>
+                <p class="text-sm text-zinc-500 dark:text-neutral-500 mt-1">Co-founder / Developer</p>
+              </div>
+              <!-- Member 3 -->
+              <div class="text-center group">
+                <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-cyan-500/10 to-blue-600/10 dark:from-cyan-500/20 dark:to-blue-600/20 border border-black/10 dark:border-white/10 flex items-center justify-center mb-4 group-hover:border-cyan-500/50 group-hover:scale-105 transition-all p-1">
+                    <img src="member_profile/justin_dp.jpg" alt="Rhay Justin Sampaga" onerror="this.onerror=null; this.src='https://placehold.co/150x150/111111/00f57d?text=RS'" class="w-full h-full rounded-full object-cover shadow-sm">
+
+                </div>
+                <h5 class="text-zinc-900 dark:text-white font-medium text-lg tracking-wide">Rhay Justin Sampaga</h5>
+                <p class="text-sm text-zinc-500 dark:text-neutral-500 mt-1">Developer</p>
+              </div>
+              <!-- Member 4 -->
+              <div class="text-center group">
+                <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-cyan-500/10 to-blue-600/10 dark:from-cyan-500/20 dark:to-blue-600/20 border border-black/10 dark:border-white/10 flex items-center justify-center mb-4 group-hover:border-cyan-500/50 group-hover:scale-105 transition-all p-1">
+                    <img src="member_profile/kenneth_dp.jpg" alt="Mark Kenneth Uy" onerror="this.onerror=null; this.src='https://placehold.co/150x150/111111/00f57d?text=MU'" class="w-full h-full rounded-full object-cover shadow-sm">
+                  
+                </div>
+                <h5 class="text-zinc-900 dark:text-white font-medium text-lg tracking-wide">Mark Kenneth Uy</h5>
+                <p class="text-sm text-zinc-500 dark:text-neutral-500 mt-1">Developer</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documentation -->
+        <div class="bg-white/60 dark:bg-black/40 backdrop-blur-lg rounded-2xl border border-black/10 dark:border-white/5 overflow-hidden shadow-2xl">
+          <div class="p-8 md:p-10 border-b border-black/5 dark:border-white/5 bg-gradient-to-r from-black/5 dark:from-white/5 to-transparent">
+            <h3 class="text-3xl font-light text-cyan-600 dark:text-cyan-400 mb-2 tracking-wide">Technical Documentation</h3>
+            <p class="text-zinc-600 dark:text-neutral-400 text-lg">Technologies, libraries, and APIs utilized in this application.</p>
+          </div>
+          <div class="p-0">
+            <ul class="divide-y divide-black/5 dark:divide-white/5">
+              <li class="p-8 md:px-10 flex flex-col sm:flex-row sm:items-start gap-6 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                <div class="w-14 h-14 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <i data-lucide="layout" class="w-7 h-7 text-cyan-600 dark:text-cyan-400"></i>
+                </div>
+                <div>
+                  <h4 class="text-xl font-medium text-zinc-900 dark:text-white mb-2">HTML, CSS & Vanilla JS</h4>
+                  <p class="text-zinc-600 dark:text-neutral-400 text-base leading-relaxed">Built entirely without heavy JavaScript frameworks (like React or Angular) to demonstrate core DOM manipulation, event delegation, and fundamental web technologies.</p>
+                </div>
+              </li>
+              <li class="p-8 md:px-10 flex flex-col sm:flex-row sm:items-start gap-6 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                <div class="w-14 h-14 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <i data-lucide="palette" class="w-7 h-7 text-cyan-600 dark:text-cyan-400"></i>
+                </div>
+                <div>
+                  <h4 class="text-xl font-medium text-zinc-900 dark:text-white mb-2">Tailwind CSS (CDN)</h4>
+                  <p class="text-zinc-600 dark:text-neutral-400 text-base leading-relaxed">Used for rapid UI development and styling. Leveraged utilities for flexbox, grids, responsive breakpoints, and glassmorphism (backdrop-blur) to create the modern dual-theme directly in the HTML.</p>
+                </div>
+              </li>
+              <li class="p-8 md:px-10 flex flex-col sm:flex-row sm:items-start gap-6 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                <div class="w-14 h-14 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <i data-lucide="cloud-lightning" class="w-7 h-7 text-cyan-600 dark:text-cyan-400"></i>
+                </div>
+                <div>
+                  <h4 class="text-xl font-medium text-zinc-900 dark:text-white mb-2">Lyrics.ovh API</h4>
+                  <p class="text-zinc-600 dark:text-neutral-400 text-base leading-relaxed">A public, free-to-use REST API for querying artists, fetching real-time song suggestions, and retrieving full lyric text dynamically. Implemented using standard asynchronous <code>fetch()</code> requests.</p>
+                </div>
+              </li>
+              <li class="p-8 md:px-10 flex flex-col sm:flex-row sm:items-start gap-6 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                <div class="w-14 h-14 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <i data-lucide="database" class="w-7 h-7 text-cyan-600 dark:text-cyan-400"></i>
+                </div>
+                <div>
+                  <h4 class="text-xl font-medium text-zinc-900 dark:text-white mb-2">LocalStorage API</h4>
+                  <p class="text-zinc-600 dark:text-neutral-400 text-base leading-relaxed">Provides persistent data storage directly in the browser. Used to securely save the "Vault" collection (lyrics and personal notes) and the user's theme preference.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- APP LOGIC -->
+  <script>
+    lucide.createIcons();
+
+    // --- THEME TOGGLE LOGIC ---
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
+
+    function updateThemeUI(isDark) {
+      if (isDark) {
+        themeIcon.setAttribute('data-lucide', 'sun');
+        themeText.textContent = 'Light Mode';
+      } else {
+        themeIcon.setAttribute('data-lucide', 'moon');
+        themeText.textContent = 'Dark Mode';
+      }
+      lucide.createIcons();
+    }
+
+    // Set initial icon based on load
+    updateThemeUI(document.documentElement.classList.contains('dark'));
+
+    themeToggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateThemeUI(isDark);
+    });
+
+
+    // --- DATA & DOM VARIABLES ---
+    let bookmarks = JSON.parse(localStorage.getItem('lyricBookmarks')) || [];
+    let currentResult = null;
+    let debounceTimer = null;
+    let currentViewerId = null;
+
+    // Navigation Elements
+    const tabSearch = document.getElementById('tab-search');
+    const tabBookmarks = document.getElementById('tab-bookmarks');
+    const tabAbout = document.getElementById('tab-about');
+    const viewSearch = document.getElementById('view-search');
+    const viewBookmarks = document.getElementById('view-bookmarks');
+    const viewAbout = document.getElementById('view-about');
+    const bookmarkCount = document.getElementById('bookmark-count');
+    const heroSection = document.getElementById('hero-section');
+
+    // Search Elements
+    const searchInput = document.getElementById('search-input');
+    const searchForm = document.getElementById('search-form');
+    const suggestionsDropdown = document.getElementById('suggestions-dropdown');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const searchBtn = document.getElementById('search-btn');
+
+    // Result Elements
+    const resultContainer = document.getElementById('result-container');
+    const resultTitle = document.getElementById('result-title');
+    const resultArtist = document.querySelector('#result-artist span');
+    const resultLyrics = document.getElementById('result-lyrics');
+    const saveBtn = document.getElementById('save-btn');
+    const errorMsg = document.getElementById('error-msg');
+    const errorText = document.getElementById('error-text');
+
+    // Vault Elements
+    const bookmarksList = document.getElementById('bookmarks-list');
+    const emptyBookmarks = document.getElementById('empty-bookmarks');
+    const vaultListView = document.getElementById('vault-list-view');
+    const vaultViewerView = document.getElementById('vault-viewer-view');
+    const viewerBackBtn = document.getElementById('viewer-back-btn');
+    const viewerTitle = document.getElementById('viewer-title');
+    const viewerArtist = document.querySelector('#viewer-artist span');
+    const viewerDeleteBtn = document.getElementById('viewer-delete-btn');
+    const viewerEditBtn = document.getElementById('viewer-edit-btn');
+    const viewerNotes = document.getElementById('viewer-notes');
+    const viewerDate = document.getElementById('viewer-date');
+    const viewerLyrics = document.getElementById('viewer-lyrics');
+
+    // --- STREAMING_CHUNK:Implementing navigation routing... ---
+    function switchTab(tab) {
+      // Style classes to toggle
+      const activeClasses = ['border-cyan-500', 'text-cyan-600', 'dark:text-cyan-400', 'bg-black/5', 'dark:bg-white/5'];
+      const inactiveClasses = ['border-transparent', 'text-zinc-500', 'dark:text-neutral-400', 'hover:text-black', 'dark:hover:text-white', 'hover:bg-black/5', 'dark:hover:bg-white/5'];
+
+      // Hide all views
+      viewSearch.classList.add('hidden');
+      viewBookmarks.classList.add('hidden');
+      viewAbout.classList.add('hidden');
+      
+      // Reset all tabs
+      [tabSearch, tabBookmarks, tabAbout].forEach(t => {
+        t.classList.remove(...activeClasses);
+        t.classList.add(...inactiveClasses);
+      });
+
+      if (tab === 'search') {
+        viewSearch.classList.remove('hidden');
+        tabSearch.classList.add(...activeClasses);
+        tabSearch.classList.remove(...inactiveClasses);
+      } else if (tab === 'bookmarks') {
+        viewBookmarks.classList.remove('hidden');
+        // Always reset vault to list view when navigating to it
+        vaultListView.classList.remove('hidden');
+        vaultViewerView.classList.add('hidden');
+        tabBookmarks.classList.add(...activeClasses);
+        tabBookmarks.classList.remove(...inactiveClasses);
+        renderBookmarks();
+      } else if (tab === 'about') {
+        viewAbout.classList.remove('hidden');
+        tabAbout.classList.add(...activeClasses);
+        tabAbout.classList.remove(...inactiveClasses);
+      }
+    }
+
+    tabSearch.addEventListener('click', () => switchTab('search'));
+    tabBookmarks.addEventListener('click', () => switchTab('bookmarks'));
+    tabAbout.addEventListener('click', () => switchTab('about'));
+
+    // --- STREAMING_CHUNK:Adding API fetching logic... ---
+    function showError(msg) {
+      errorText.textContent = msg;
+      errorMsg.classList.remove('hidden');
+      resultContainer.classList.add('hidden');
+      heroSection.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorMsg.classList.add('hidden');
+    }
+
+    // Auto-suggestions
+    searchInput.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      clearTimeout(debounceTimer);
+
+      if (val.length > 2) {
+        loadingSpinner.classList.remove('hidden');
+        debounceTimer = setTimeout(async () => {
+          try {
+            const res = await fetch(`https://api.lyrics.ovh/suggest/${val}`);
+            const data = await res.json();
+            renderSuggestions(data.data.slice(0, 5));
+          } catch (err) {
+            suggestionsDropdown.classList.add('hidden');
+          } finally {
+            loadingSpinner.classList.add('hidden');
+          }
+        }, 400);
+      } else {
+        suggestionsDropdown.classList.add('hidden');
+        loadingSpinner.classList.add('hidden');
+      }
+    });
+
+    function renderSuggestions(suggestions) {
+      if (suggestions.length === 0) {
+        suggestionsDropdown.classList.add('hidden');
+        return;
+      }
+      
+      suggestionsDropdown.innerHTML = '';
+      suggestions.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'p-4 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer flex justify-between items-center transition-colors group';
+        li.innerHTML = `
+          <div>
+            <div class="font-medium text-zinc-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">${item.title}</div>
+            <div class="text-sm text-zinc-500 dark:text-neutral-500">${item.artist.name}</div>
+          </div>
+          <i data-lucide="arrow-up-right" class="w-4 h-4 text-zinc-400 dark:text-neutral-600 group-hover:text-cyan-600 dark:group-hover:text-cyan-400"></i>
+        `;
+        li.addEventListener('click', () => {
+          searchInput.value = `${item.artist.name} - ${item.title}`;
+          suggestionsDropdown.classList.add('hidden');
+          fetchLyrics(item.artist.name, item.title);
+        });
+        suggestionsDropdown.appendChild(li);
+      });
+      
+      lucide.createIcons();
+      suggestionsDropdown.classList.remove('hidden');
+    }
+
+    // Fetch lyrics
+    async function fetchLyrics(artist, title) {
+      searchBtn.disabled = true;
+      hideError();
+      resultContainer.classList.add('hidden');
+
+      try {
+        const res = await fetch(`https://api.lyrics.ovh/v1/${artist}/${title}`);
+        if (!res.ok) throw new Error('Not found');
+        const data = await res.json();
+        
+        if (data.lyrics) {
+          const cleanLyrics = data.lyrics.replace(/Paroles de la chanson .+ par .+\r?\n/, '');
+          currentResult = { artist, title, lyrics: cleanLyrics, id: Date.now().toString() };
+          
+          resultTitle.textContent = title;
+          resultArtist.textContent = artist;
+          resultLyrics.textContent = cleanLyrics;
+          
+          // Collapse hero section for space
+          heroSection.classList.add('hidden');
+          resultContainer.classList.remove('hidden');
+        } else {
+          showError('Lyrics not found. Please try another song.');
+        }
+      } catch (err) {
+        showError('Failed to find lyrics. Make sure the spelling is correct.');
+      } finally {
+        searchBtn.disabled = false;
+      }
+    }
+
+    searchForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const query = searchInput.value.trim();
+      if (!query) return;
+
+      suggestionsDropdown.classList.add('hidden');
+      searchBtn.disabled = true;
+      hideError();
+
+      try {
+        const res = await fetch(`https://api.lyrics.ovh/suggest/${query}`);
+        const data = await res.json();
+        if (data.data && data.data.length > 0) {
+          const bestMatch = data.data[0];
+          searchInput.value = `${bestMatch.artist.name} - ${bestMatch.title}`;
+          await fetchLyrics(bestMatch.artist.name, bestMatch.title);
+        } else {
+          showError('Could not find any matching songs.');
+        }
+      } catch (err) {
+        showError('Search failed.');
+      } finally {
+        searchBtn.disabled = false;
+      }
+    });
+
+    // --- STREAMING_CHUNK:Adding Bookmarking and UI Rendering logic... ---
+    // --- CRUD OPERATIONS ---
+    function updateBadge() {
+      if (bookmarks.length > 0) {
+        bookmarkCount.textContent = bookmarks.length;
+        bookmarkCount.classList.remove('hidden');
+      } else {
+        bookmarkCount.classList.add('hidden');
+      }
+      localStorage.setItem('lyricBookmarks', JSON.stringify(bookmarks));
+    }
+
+    saveBtn.addEventListener('click', () => {
+      if (!currentResult) return;
+      
+      const exists = bookmarks.some(b => b.artist.toLowerCase() === currentResult.artist.toLowerCase() && b.title.toLowerCase() === currentResult.title.toLowerCase());
+      if (exists) {
+        // Visual warning instead of alert box
+        const originalHtml = saveBtn.innerHTML;
+        saveBtn.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-green-500 dark:text-green-400"></i><span class="hidden sm:inline text-green-600 dark:text-green-400">Already Saved</span>`;
+        lucide.createIcons();
+        setTimeout(() => { 
+          saveBtn.innerHTML = originalHtml; 
+          lucide.createIcons(); 
+        }, 2500);
+        return;
+      }
+
+      bookmarks.unshift({
+        ...currentResult,
+        note: 'Personal notes...',
+        dateAdded: new Date().toLocaleDateString()
+      });
+      
+      updateBadge();
+      switchTab('bookmarks');
+    });
+
+    // Vault Event Delegation (List)
+    bookmarksList.addEventListener('click', (e) => {
+      const deleteBtn = e.target.closest('.delete-btn');
+      const editBtn = e.target.closest('.edit-btn');
+      const viewBtn = e.target.closest('.view-btn');
+
+      if (deleteBtn) {
+        const id = deleteBtn.dataset.id;
+        bookmarks = bookmarks.filter(b => b.id !== id);
+        updateBadge();
+        renderBookmarks();
+      } else if (editBtn) {
+        const id = editBtn.dataset.id;
+        const currentNote = bookmarks.find(b => b.id === id).note;
+        const newNote = prompt('Update your note:', currentNote);
+        if (newNote !== null) {
+          bookmarks = bookmarks.map(b => b.id === id ? { ...b, note: newNote } : b);
+          updateBadge();
+          renderBookmarks();
+        }
+      } else if (viewBtn) {
+        openVaultViewer(viewBtn.dataset.id);
+      }
+    });
+
+    // Vault Viewer Logic
+    function openVaultViewer(id) {
+      const bookmark = bookmarks.find(b => b.id === id);
+      if (!bookmark) return;
+      currentViewerId = id;
+      
+      viewerTitle.textContent = bookmark.title;
+      viewerArtist.textContent = bookmark.artist;
+      viewerLyrics.textContent = bookmark.lyrics;
+      viewerNotes.textContent = `"${bookmark.note}"`;
+      viewerDate.textContent = `Added: ${bookmark.dateAdded}`;
+      
+      vaultListView.classList.add('hidden');
+      vaultViewerView.classList.remove('hidden');
+    }
+
+    function closeVaultViewer() {
+      currentViewerId = null;
+      vaultViewerView.classList.add('hidden');
+      vaultListView.classList.remove('hidden');
+      renderBookmarks();
+    }
+
+    viewerBackBtn.addEventListener('click', closeVaultViewer);
+
+    viewerDeleteBtn.addEventListener('click', () => {
+      bookmarks = bookmarks.filter(b => b.id !== currentViewerId);
+      updateBadge();
+      closeVaultViewer();
+    });
+
+    viewerEditBtn.addEventListener('click', () => {
+      const bookmark = bookmarks.find(b => b.id === currentViewerId);
+      const newNote = prompt('Update your note:', bookmark.note);
+      if (newNote !== null) {
+        bookmarks = bookmarks.map(b => b.id === currentViewerId ? { ...b, note: newNote } : b);
+        updateBadge();
+        viewerNotes.textContent = `"${newNote}"`;
+      }
+    });
+
+    function renderBookmarks() {
+      if (bookmarks.length === 0) {
+        emptyBookmarks.classList.remove('hidden');
+        bookmarksList.innerHTML = '';
+        return;
+      }
+
+      emptyBookmarks.classList.add('hidden');
+      bookmarksList.innerHTML = bookmarks.map(bookmark => `
+        <div class="bg-white/60 dark:bg-black/40 backdrop-blur-lg rounded-2xl border border-black/10 dark:border-white/5 overflow-hidden flex flex-col hover:border-black/20 dark:hover:border-white/10 transition-colors group">
+          <div class="p-6 border-b border-black/5 dark:border-white/5 bg-gradient-to-r from-black/5 dark:from-white/5 to-transparent flex justify-between items-start">
+            <div>
+              <h3 class="text-xl font-light text-zinc-900 dark:text-white capitalize tracking-wide mb-1">${bookmark.title}</h3>
+              <p class="text-cyan-600 dark:text-cyan-400 text-sm font-medium capitalize tracking-wider">${bookmark.artist}</p>
+            </div>
+            <button class="delete-btn text-zinc-500 dark:text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition-colors relative z-20" data-id="${bookmark.id}" title="Remove">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <div class="view-btn p-6 relative h-48 overflow-hidden group/preview cursor-pointer" data-id="${bookmark.id}">
+            <div class="absolute inset-0 z-10 flex items-center justify-center opacity-0 group-hover/preview:opacity-100 bg-white/80 dark:bg-black/60 backdrop-blur-sm transition-all duration-300">
+              <span class="px-6 py-2 bg-cyan-500 text-black text-sm font-semibold tracking-wider rounded-full shadow-[0_0_15px_rgba(0,245,125,0.4)] flex items-center space-x-2">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+                <span>Read Full Lyrics</span>
+              </span>
+            </div>
+            <pre class="whitespace-pre-wrap font-sans text-sm text-zinc-600 dark:text-neutral-400 leading-loose pointer-events-none">${bookmark.lyrics}</pre>
+            <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#f8fafc] dark:from-[#131313] to-transparent pointer-events-none"></div>
+          </div>
+
+          <div class="p-6 bg-black/5 dark:bg-black/20 mt-auto border-t border-black/5 dark:border-white/5 relative z-20">
+            <div class="flex justify-between items-center mb-3">
+              <h4 class="font-semibold text-zinc-500 dark:text-neutral-500 text-xs uppercase tracking-widest">Your Notes</h4>
+              <button class="edit-btn text-zinc-500 dark:text-neutral-500 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors" data-id="${bookmark.id}" title="Edit Note">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <p class="text-zinc-700 dark:text-neutral-300 text-sm italic bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-black/5 dark:border-white/5">
+              "${bookmark.note}"
+            </p>
+            <div class="mt-4 text-[10px] text-zinc-500 dark:text-neutral-600 tracking-widest uppercase">
+              Added: ${bookmark.dateAdded}
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      lucide.createIcons();
+    }
+
+    updateBadge();
+    
+    // Close suggestions dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
+        suggestionsDropdown.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
