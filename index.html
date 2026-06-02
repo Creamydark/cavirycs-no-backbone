@@ -36,6 +36,10 @@
   </script>
 
   <style>
+    :root {
+      --ambient-bg: url('https://images.unsplash.com/photo-1493225457124-a1a2a5956093?auto=format&fit=crop&q=80&w=2000');
+    }
+
     .hidden { display: none !important; }
     
     /* Custom scrollbars */
@@ -51,13 +55,14 @@
 
     /* The immersive background - adjusts gradients based on mode */
     .app-bg {
-      background-image: linear-gradient(to right, rgba(248, 250, 252, 0.95) 0%, rgba(248, 250, 252, 0.75) 100%), url('https://images.unsplash.com/photo-1493225457124-a1a2a5956093?auto=format&fit=crop&q=80&w=2000');
+      background-image: linear-gradient(to right, rgba(248, 250, 252, 0.95) 0%, rgba(248, 250, 252, 0.75) 100%), var(--ambient-bg);
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
+      transition: background-image 0.5s ease-in-out;
     }
     .dark .app-bg {
-      background-image: linear-gradient(to right, rgba(17, 17, 17, 0.95) 0%, rgba(17, 17, 17, 0.7) 100%), url('https://images.unsplash.com/photo-1493225457124-a1a2a5956093?auto=format&fit=crop&q=80&w=2000');
+      background-image: linear-gradient(to right, rgba(17, 17, 17, 0.95) 0%, rgba(17, 17, 17, 0.7) 100%), var(--ambient-bg);
     }
   </style>
 </head>
@@ -464,6 +469,12 @@
     const viewerDate = document.getElementById('viewer-date');
     const viewerLyrics = document.getElementById('viewer-lyrics');
 
+    // --- BACKGROUND LOGIC ---
+    function setAmbientBackground(url) {
+      const defaultUrl = "https://images.unsplash.com/photo-1493225457124-a1a2a5956093?auto=format&fit=crop&q=80&w=2000";
+      document.documentElement.style.setProperty('--ambient-bg', `url('${url || defaultUrl}')`);
+    }
+
     // --- NAVIGATION ---
     function switchTab(tab) {
       const activeClasses = ['border-cyan-500', 'text-cyan-600', 'dark:text-cyan-400', 'bg-black/5', 'dark:bg-white/5'];
@@ -482,6 +493,7 @@
         viewSearch.classList.remove('hidden');
         tabSearch.classList.add(...activeClasses);
         tabSearch.classList.remove(...inactiveClasses);
+        setAmbientBackground(currentResult ? currentResult.thumbnailUrl : null);
       } else if (tab === 'bookmarks') {
         viewBookmarks.classList.remove('hidden');
         vaultListView.classList.remove('hidden');
@@ -489,10 +501,12 @@
         tabBookmarks.classList.add(...activeClasses);
         tabBookmarks.classList.remove(...inactiveClasses);
         renderBookmarks();
+        setAmbientBackground(null);
       } else if (tab === 'about') {
         viewAbout.classList.remove('hidden');
         tabAbout.classList.add(...activeClasses);
         tabAbout.classList.remove(...inactiveClasses);
+        setAmbientBackground(null);
       }
     }
 
@@ -507,6 +521,7 @@
       errorMsg.classList.remove('hidden');
       resultContainer.classList.add('hidden');
       heroSection.classList.remove('hidden');
+      setAmbientBackground(null);
     }
 
     function hideError() {
@@ -623,12 +638,16 @@
             resultThumbnail.classList.remove('hidden');
             resultThumbnailPlaceholder.classList.add('hidden');
             
-            resultLyricsBg.style.backgroundImage = `url('${artworkUrl}')`;
+            // resultLyricsBg.style.backgroundImage = `url('${artworkUrl}')`;
             resultLyricsBg.classList.remove('hidden');
+            
+            setAmbientBackground(artworkUrl);
           } else {
             resultThumbnail.classList.add('hidden');
             resultThumbnailPlaceholder.classList.remove('hidden');
             resultLyricsBg.classList.add('hidden');
+            
+            setAmbientBackground(null);
           }
           
           // Collapse hero section for space
@@ -756,10 +775,14 @@
         
         viewerLyricsBg.style.backgroundImage = `url('${bookmark.thumbnailUrl}')`;
         viewerLyricsBg.classList.remove('hidden');
+        
+        setAmbientBackground(bookmark.thumbnailUrl);
       } else {
         viewerThumbnail.classList.add('hidden');
         viewerThumbnailPlaceholder.classList.remove('hidden');
         viewerLyricsBg.classList.add('hidden');
+        
+        setAmbientBackground(null);
       }
       
       vaultListView.classList.add('hidden');
@@ -771,6 +794,7 @@
       vaultViewerView.classList.add('hidden');
       vaultListView.classList.remove('hidden');
       renderBookmarks();
+      setAmbientBackground(null);
     }
 
     viewerBackBtn.addEventListener('click', closeVaultViewer);
