@@ -153,7 +153,7 @@
           <div id="loading-spinner" class="absolute right-32 top-5 text-cyan-600 dark:text-cyan-400 hidden">
             <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
           </div>
-          <button type="submit" id="search-btn" class="absolute right-2 top-2 bottom-2 bg-cyan-500 hover:bg-cyan-400 text-black px-6 rounded-full font-semibold tracking-wide transition-colors">
+          <button type="submit" id="search-btn" class="absolute right-2 top-2 bottom-2 bg-cyan-500 hover:bg-cyan-400 text-black px-6 rounded-full font-semibold tracking-wide transition-colors flex items-center justify-center">
             Search
           </button>
 
@@ -172,21 +172,30 @@
 
       <!-- Search Result Container -->
       <div id="result-container" class="hidden mt-12 max-w-4xl w-full mx-auto bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden animate-in fade-in duration-700 text-left">
-        <div class="p-8 border-b border-black/5 dark:border-white/5 flex justify-between items-start bg-gradient-to-b from-black/5 dark:from-white/5 to-transparent">
-          <div>
-            <h3 id="result-title" class="text-3xl font-light text-zinc-900 dark:text-white tracking-wide mb-2"></h3>
-            <p id="result-artist" class="text-cyan-600 dark:text-cyan-400 text-lg font-medium flex items-center space-x-2 tracking-wider">
-              <i data-lucide="mic" class="w-4 h-4"></i>
-              <span></span>
-            </p>
+        <div class="p-8 border-b border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gradient-to-b from-black/5 dark:from-white/5 to-transparent gap-6">
+          <div class="flex items-center gap-6 w-full sm:w-auto">
+            <!-- Thumbnail Image -->
+            <img id="result-thumbnail" src="" class="w-24 h-24 md:w-32 md:h-32 rounded-xl object-cover shadow-xl hidden" alt="Album Art">
+            <div id="result-thumbnail-placeholder" class="w-24 h-24 md:w-32 md:h-32 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center shadow-inner hidden">
+              <i data-lucide="music" class="w-8 h-8 text-zinc-400 dark:text-neutral-600"></i>
+            </div>
+            
+            <div class="flex-1">
+              <h3 id="result-title" class="text-3xl font-light text-zinc-900 dark:text-white tracking-wide mb-2"></h3>
+              <p id="result-artist" class="text-cyan-600 dark:text-cyan-400 text-lg font-medium flex items-center space-x-2 tracking-wider">
+                <i data-lucide="mic" class="w-4 h-4"></i>
+                <span></span>
+              </p>
+            </div>
           </div>
-          <button id="save-btn" class="flex items-center space-x-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white px-5 py-2.5 rounded-full font-light tracking-wide transition-colors">
+          <button id="save-btn" class="flex items-center space-x-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10 text-zinc-900 dark:text-white px-5 py-2.5 rounded-full font-light tracking-wide transition-colors shrink-0">
             <i data-lucide="bookmark-plus" class="w-5 h-5 text-cyan-600 dark:text-cyan-400"></i>
             <span class="hidden sm:inline">Save Lyrics</span>
           </button>
         </div>
-        <div class="p-8 md:p-12">
-          <pre id="result-lyrics" class="whitespace-pre-wrap font-sans text-zinc-700 dark:text-neutral-300 leading-loose text-lg"></pre>
+        <div class="p-8 md:p-12 relative overflow-hidden">
+          <div id="result-lyrics-bg" class="absolute inset-0 bg-cover bg-center opacity-[0.03] dark:opacity-[0.05] pointer-events-none hidden"></div>
+          <pre id="result-lyrics" class="whitespace-pre-wrap font-sans text-zinc-700 dark:text-neutral-300 leading-loose text-lg relative z-10"></pre>
         </div>
       </div>
     </div>
@@ -221,15 +230,24 @@
         </button>
 
         <div class="bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-          <div class="p-8 border-b border-black/5 dark:border-white/5 flex justify-between items-start bg-gradient-to-b from-black/5 dark:from-white/5 to-transparent">
-            <div>
-              <h3 id="viewer-title" class="text-3xl md:text-4xl font-light text-zinc-900 dark:text-white tracking-wide mb-2 capitalize"></h3>
-              <p id="viewer-artist" class="text-cyan-600 dark:text-cyan-400 text-lg font-medium flex items-center space-x-2 tracking-wider capitalize">
-                <i data-lucide="mic" class="w-4 h-4"></i>
-                <span></span>
-              </p>
+          <div class="p-8 border-b border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gradient-to-b from-black/5 dark:from-white/5 to-transparent gap-6">
+            <div class="flex items-center gap-6 w-full sm:w-auto">
+              <!-- Thumbnail Image for Viewer -->
+              <img id="viewer-thumbnail" src="" class="w-20 h-20 md:w-28 md:h-28 rounded-xl object-cover shadow-lg hidden" alt="Album Art">
+              <div id="viewer-thumbnail-placeholder" class="w-20 h-20 md:w-28 md:h-28 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center shadow-inner hidden">
+                <i data-lucide="music" class="w-6 h-6 text-zinc-400 dark:text-neutral-600"></i>
+              </div>
+
+              <div>
+                <h3 id="viewer-title" class="text-3xl md:text-4xl font-light text-zinc-900 dark:text-white tracking-wide mb-2 capitalize"></h3>
+                <p id="viewer-artist" class="text-cyan-600 dark:text-cyan-400 text-lg font-medium flex items-center space-x-2 tracking-wider capitalize">
+                  <i data-lucide="mic" class="w-4 h-4"></i>
+                  <span></span>
+                </p>
+              </div>
             </div>
-            <button id="viewer-delete-btn" class="flex items-center space-x-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-600 dark:text-red-400 px-5 py-2.5 rounded-full font-light tracking-wide transition-colors">
+            
+            <button id="viewer-delete-btn" class="flex items-center space-x-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-600 dark:text-red-400 px-5 py-2.5 rounded-full font-light tracking-wide transition-colors shrink-0">
               <i data-lucide="trash-2" class="w-5 h-5"></i>
               <span class="hidden sm:inline">Remove</span>
             </button>
@@ -246,8 +264,9 @@
             <div id="viewer-date" class="mt-4 text-[10px] text-zinc-500 dark:text-neutral-600 tracking-widest uppercase"></div>
           </div>
 
-          <div class="p-8 md:p-12">
-            <pre id="viewer-lyrics" class="whitespace-pre-wrap font-sans text-zinc-700 dark:text-neutral-300 leading-loose text-lg"></pre>
+          <div class="p-8 md:p-12 relative overflow-hidden">
+             <div id="viewer-lyrics-bg" class="absolute inset-0 bg-cover bg-center opacity-[0.03] dark:opacity-[0.05] pointer-events-none hidden"></div>
+            <pre id="viewer-lyrics" class="whitespace-pre-wrap font-sans text-zinc-700 dark:text-neutral-300 leading-loose text-lg relative z-10"></pre>
           </div>
         </div>
       </div>
@@ -340,8 +359,8 @@
                   <i data-lucide="cloud-lightning" class="w-7 h-7 text-cyan-600 dark:text-cyan-400"></i>
                 </div>
                 <div>
-                  <h4 class="text-xl font-medium text-zinc-900 dark:text-white mb-2">Lyrics.ovh API</h4>
-                  <p class="text-zinc-600 dark:text-neutral-400 text-base leading-relaxed">A public, free-to-use REST API for querying artists, fetching real-time song suggestions, and retrieving full lyric text dynamically. Implemented using standard asynchronous <code>fetch()</code> requests.</p>
+                  <h4 class="text-xl font-medium text-zinc-900 dark:text-white mb-2">Lyrics.ovh & iTunes Search APIs</h4>
+                  <p class="text-zinc-600 dark:text-neutral-400 text-base leading-relaxed">Public, free-to-use REST APIs for querying artists. Lyrics.ovh fetches real-time song suggestions and lyric text dynamically, while iTunes Search API retrieves high-quality album artwork natively via client-side requests.</p>
                 </div>
               </li>
               <li class="p-8 md:px-10 flex flex-col sm:flex-row sm:items-start gap-6 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
@@ -350,7 +369,7 @@
                 </div>
                 <div>
                   <h4 class="text-xl font-medium text-zinc-900 dark:text-white mb-2">LocalStorage API</h4>
-                  <p class="text-zinc-600 dark:text-neutral-400 text-base leading-relaxed">Provides persistent data storage directly in the browser. Used to securely save the "Vault" collection (lyrics and personal notes) and the user's theme preference.</p>
+                  <p class="text-zinc-600 dark:text-neutral-400 text-base leading-relaxed">Provides persistent data storage directly in the browser. Used to securely save the "Vault" collection (lyrics, notes, and cover art URLs) and the user's theme preference.</p>
                 </div>
               </li>
             </ul>
@@ -421,6 +440,9 @@
     const resultTitle = document.getElementById('result-title');
     const resultArtist = document.querySelector('#result-artist span');
     const resultLyrics = document.getElementById('result-lyrics');
+    const resultThumbnail = document.getElementById('result-thumbnail');
+    const resultThumbnailPlaceholder = document.getElementById('result-thumbnail-placeholder');
+    const resultLyricsBg = document.getElementById('result-lyrics-bg');
     const saveBtn = document.getElementById('save-btn');
     const errorMsg = document.getElementById('error-msg');
     const errorText = document.getElementById('error-text');
@@ -433,24 +455,24 @@
     const viewerBackBtn = document.getElementById('viewer-back-btn');
     const viewerTitle = document.getElementById('viewer-title');
     const viewerArtist = document.querySelector('#viewer-artist span');
+    const viewerThumbnail = document.getElementById('viewer-thumbnail');
+    const viewerThumbnailPlaceholder = document.getElementById('viewer-thumbnail-placeholder');
+    const viewerLyricsBg = document.getElementById('viewer-lyrics-bg');
     const viewerDeleteBtn = document.getElementById('viewer-delete-btn');
     const viewerEditBtn = document.getElementById('viewer-edit-btn');
     const viewerNotes = document.getElementById('viewer-notes');
     const viewerDate = document.getElementById('viewer-date');
     const viewerLyrics = document.getElementById('viewer-lyrics');
 
-    // --- STREAMING_CHUNK:Implementing navigation routing... ---
+    // --- NAVIGATION ---
     function switchTab(tab) {
-      // Style classes to toggle
       const activeClasses = ['border-cyan-500', 'text-cyan-600', 'dark:text-cyan-400', 'bg-black/5', 'dark:bg-white/5'];
       const inactiveClasses = ['border-transparent', 'text-zinc-500', 'dark:text-neutral-400', 'hover:text-black', 'dark:hover:text-white', 'hover:bg-black/5', 'dark:hover:bg-white/5'];
 
-      // Hide all views
       viewSearch.classList.add('hidden');
       viewBookmarks.classList.add('hidden');
       viewAbout.classList.add('hidden');
       
-      // Reset all tabs
       [tabSearch, tabBookmarks, tabAbout].forEach(t => {
         t.classList.remove(...activeClasses);
         t.classList.add(...inactiveClasses);
@@ -462,7 +484,6 @@
         tabSearch.classList.remove(...inactiveClasses);
       } else if (tab === 'bookmarks') {
         viewBookmarks.classList.remove('hidden');
-        // Always reset vault to list view when navigating to it
         vaultListView.classList.remove('hidden');
         vaultViewerView.classList.add('hidden');
         tabBookmarks.classList.add(...activeClasses);
@@ -479,7 +500,8 @@
     tabBookmarks.addEventListener('click', () => switchTab('bookmarks'));
     tabAbout.addEventListener('click', () => switchTab('about'));
 
-    // --- STREAMING_CHUNK:Adding API fetching logic... ---
+
+    // --- API FETCHING LOGIC ---
     function showError(msg) {
       errorText.textContent = msg;
       errorMsg.classList.remove('hidden');
@@ -489,6 +511,23 @@
 
     function hideError() {
       errorMsg.classList.add('hidden');
+    }
+
+    // Function to fetch high-quality album art via iTunes Search API
+    async function fetchAlbumArt(artist, title) {
+      try {
+        const query = encodeURIComponent(`${artist} ${title}`);
+        const res = await fetch(`https://itunes.apple.com/search?term=${query}&entity=song&limit=1`);
+        const data = await res.json();
+        
+        if (data.results && data.results.length > 0) {
+          // Replace 100x100 resolution with 600x600 for high quality
+          return data.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+        }
+      } catch (err) {
+        console.error('Thumbnail fetch failed:', err);
+      }
+      return null;
     }
 
     // Auto-suggestions
@@ -535,7 +574,7 @@
         li.addEventListener('click', () => {
           searchInput.value = `${item.artist.name} - ${item.title}`;
           suggestionsDropdown.classList.add('hidden');
-          fetchLyrics(item.artist.name, item.title);
+          fetchLyricsAndArt(item.artist.name, item.title);
         });
         suggestionsDropdown.appendChild(li);
       });
@@ -544,24 +583,53 @@
       suggestionsDropdown.classList.remove('hidden');
     }
 
-    // Fetch lyrics
-    async function fetchLyrics(artist, title) {
+    // Main fetch function combining Lyrics & Artwork
+    async function fetchLyricsAndArt(artist, title) {
       searchBtn.disabled = true;
+      searchBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
+      lucide.createIcons();
       hideError();
       resultContainer.classList.add('hidden');
 
       try {
-        const res = await fetch(`https://api.lyrics.ovh/v1/${artist}/${title}`);
-        if (!res.ok) throw new Error('Not found');
-        const data = await res.json();
+        // Fetch both concurrently to save time
+        const [lyricsRes, artworkUrl] = await Promise.all([
+          fetch(`https://api.lyrics.ovh/v1/${artist}/${title}`).then(res => {
+             if (!res.ok) throw new Error('Lyrics not found');
+             return res.json();
+          }),
+          fetchAlbumArt(artist, title)
+        ]);
         
-        if (data.lyrics) {
-          const cleanLyrics = data.lyrics.replace(/Paroles de la chanson .+ par .+\r?\n/, '');
-          currentResult = { artist, title, lyrics: cleanLyrics, id: Date.now().toString() };
+        if (lyricsRes.lyrics) {
+          const cleanLyrics = lyricsRes.lyrics.replace(/Paroles de la chanson .+ par .+\r?\n/, '');
           
+          currentResult = { 
+            artist, 
+            title, 
+            lyrics: cleanLyrics, 
+            id: Date.now().toString(),
+            thumbnailUrl: artworkUrl 
+          };
+          
+          // Update DOM Elements
           resultTitle.textContent = title;
           resultArtist.textContent = artist;
           resultLyrics.textContent = cleanLyrics;
+          
+          // Handle Thumbnail UI
+          if (artworkUrl) {
+            resultThumbnail.src = artworkUrl;
+            resultThumbnail.classList.remove('hidden');
+            resultThumbnailPlaceholder.classList.add('hidden');
+            
+            resultLyricsBg.style.backgroundImage = `url('${artworkUrl}')`;
+            resultLyricsBg.classList.remove('hidden');
+          } else {
+            resultThumbnail.classList.add('hidden');
+            resultThumbnailPlaceholder.classList.remove('hidden');
+            resultLyricsBg.classList.add('hidden');
+          }
           
           // Collapse hero section for space
           heroSection.classList.add('hidden');
@@ -573,6 +641,7 @@
         showError('Failed to find lyrics. Make sure the spelling is correct.');
       } finally {
         searchBtn.disabled = false;
+        searchBtn.innerHTML = 'Search';
       }
     }
 
@@ -583,6 +652,8 @@
 
       suggestionsDropdown.classList.add('hidden');
       searchBtn.disabled = true;
+      searchBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
+      lucide.createIcons();
       hideError();
 
       try {
@@ -591,7 +662,7 @@
         if (data.data && data.data.length > 0) {
           const bestMatch = data.data[0];
           searchInput.value = `${bestMatch.artist.name} - ${bestMatch.title}`;
-          await fetchLyrics(bestMatch.artist.name, bestMatch.title);
+          await fetchLyricsAndArt(bestMatch.artist.name, bestMatch.title);
         } else {
           showError('Could not find any matching songs.');
         }
@@ -599,11 +670,12 @@
         showError('Search failed.');
       } finally {
         searchBtn.disabled = false;
+        searchBtn.innerHTML = 'Search';
       }
     });
 
-    // --- STREAMING_CHUNK:Adding Bookmarking and UI Rendering logic... ---
-    // --- CRUD OPERATIONS ---
+
+    // --- CRUD OPERATIONS & BOOKMARKS ---
     function updateBadge() {
       if (bookmarks.length > 0) {
         bookmarkCount.textContent = bookmarks.length;
@@ -619,7 +691,6 @@
       
       const exists = bookmarks.some(b => b.artist.toLowerCase() === currentResult.artist.toLowerCase() && b.title.toLowerCase() === currentResult.title.toLowerCase());
       if (exists) {
-        // Visual warning instead of alert box
         const originalHtml = saveBtn.innerHTML;
         saveBtn.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-green-500 dark:text-green-400"></i><span class="hidden sm:inline text-green-600 dark:text-green-400">Already Saved</span>`;
         lucide.createIcons();
@@ -676,6 +747,20 @@
       viewerLyrics.textContent = bookmark.lyrics;
       viewerNotes.textContent = `"${bookmark.note}"`;
       viewerDate.textContent = `Added: ${bookmark.dateAdded}`;
+
+      // Handle Viewer Thumbnail
+      if (bookmark.thumbnailUrl) {
+        viewerThumbnail.src = bookmark.thumbnailUrl;
+        viewerThumbnail.classList.remove('hidden');
+        viewerThumbnailPlaceholder.classList.add('hidden');
+        
+        viewerLyricsBg.style.backgroundImage = `url('${bookmark.thumbnailUrl}')`;
+        viewerLyricsBg.classList.remove('hidden');
+      } else {
+        viewerThumbnail.classList.add('hidden');
+        viewerThumbnailPlaceholder.classList.remove('hidden');
+        viewerLyricsBg.classList.add('hidden');
+      }
       
       vaultListView.classList.add('hidden');
       vaultViewerView.classList.remove('hidden');
@@ -714,37 +799,49 @@
       }
 
       emptyBookmarks.classList.add('hidden');
-      bookmarksList.innerHTML = bookmarks.map(bookmark => `
-        <div class="bg-white/60 dark:bg-black/40 backdrop-blur-lg rounded-2xl border border-black/10 dark:border-white/5 overflow-hidden flex flex-col hover:border-black/20 dark:hover:border-white/10 transition-colors group">
-          <div class="p-6 border-b border-black/5 dark:border-white/5 bg-gradient-to-r from-black/5 dark:from-white/5 to-transparent flex justify-between items-start">
-            <div>
-              <h3 class="text-xl font-light text-zinc-900 dark:text-white capitalize tracking-wide mb-1">${bookmark.title}</h3>
-              <p class="text-cyan-600 dark:text-cyan-400 text-sm font-medium capitalize tracking-wider">${bookmark.artist}</p>
+      bookmarksList.innerHTML = bookmarks.map(bookmark => {
+        // Thumbnail logic for the list items
+        const thumbnailHtml = bookmark.thumbnailUrl 
+          ? `<img src="${bookmark.thumbnailUrl}" class="w-14 h-14 md:w-16 md:h-16 rounded-xl object-cover shadow-md flex-shrink-0" alt="Album Art">` 
+          : `<div class="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center flex-shrink-0 shadow-inner"><i data-lucide="music" class="w-6 h-6 text-zinc-400"></i></div>`;
+          
+        return `
+        <div class="bg-white/60 dark:bg-black/40 backdrop-blur-lg rounded-2xl border border-black/10 dark:border-white/5 overflow-hidden flex flex-col hover:border-black/20 dark:hover:border-white/10 transition-colors group shadow-lg">
+          <div class="p-5 border-b border-black/5 dark:border-white/5 bg-gradient-to-r from-black/5 dark:from-white/5 to-transparent flex gap-4 items-center">
+            
+            ${thumbnailHtml}
+            
+            <div class="flex-1 min-w-0">
+              <h3 class="text-xl font-medium text-zinc-900 dark:text-white capitalize tracking-wide mb-1 truncate">${bookmark.title}</h3>
+              <p class="text-cyan-600 dark:text-cyan-400 text-sm font-medium capitalize tracking-wider truncate">${bookmark.artist}</p>
             </div>
-            <button class="delete-btn text-zinc-500 dark:text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition-colors relative z-20" data-id="${bookmark.id}" title="Remove">
+            <button class="delete-btn text-zinc-500 dark:text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition-colors relative z-20 shrink-0 self-start" data-id="${bookmark.id}" title="Remove">
               <i data-lucide="trash-2" class="w-5 h-5"></i>
             </button>
           </div>
           
-          <div class="view-btn p-6 relative h-48 overflow-hidden group/preview cursor-pointer" data-id="${bookmark.id}">
+          <div class="view-btn p-6 relative h-40 overflow-hidden group/preview cursor-pointer" data-id="${bookmark.id}">
             <div class="absolute inset-0 z-10 flex items-center justify-center opacity-0 group-hover/preview:opacity-100 bg-white/80 dark:bg-black/60 backdrop-blur-sm transition-all duration-300">
               <span class="px-6 py-2 bg-cyan-500 text-black text-sm font-semibold tracking-wider rounded-full shadow-[0_0_15px_rgba(0,245,125,0.4)] flex items-center space-x-2">
                 <i data-lucide="book-open" class="w-4 h-4"></i>
                 <span>Read Full Lyrics</span>
               </span>
             </div>
-            <pre class="whitespace-pre-wrap font-sans text-sm text-zinc-600 dark:text-neutral-400 leading-loose pointer-events-none">${bookmark.lyrics}</pre>
-            <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#f8fafc] dark:from-[#131313] to-transparent pointer-events-none"></div>
+            
+            ${bookmark.thumbnailUrl ? `<div class="absolute right-0 top-0 bottom-0 w-32 bg-cover bg-center opacity-10 pointer-events-none" style="background-image: url('${bookmark.thumbnailUrl}')"></div>` : ''}
+
+            <pre class="whitespace-pre-wrap font-sans text-sm text-zinc-600 dark:text-neutral-400 leading-loose pointer-events-none relative z-0">${bookmark.lyrics}</pre>
+            <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#f8fafc] dark:from-[#131313] to-transparent pointer-events-none z-0"></div>
           </div>
 
-          <div class="p-6 bg-black/5 dark:bg-black/20 mt-auto border-t border-black/5 dark:border-white/5 relative z-20">
+          <div class="p-5 bg-black/5 dark:bg-black/20 mt-auto border-t border-black/5 dark:border-white/5 relative z-20">
             <div class="flex justify-between items-center mb-3">
               <h4 class="font-semibold text-zinc-500 dark:text-neutral-500 text-xs uppercase tracking-widest">Your Notes</h4>
               <button class="edit-btn text-zinc-500 dark:text-neutral-500 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors" data-id="${bookmark.id}" title="Edit Note">
                 <i data-lucide="edit-3" class="w-4 h-4"></i>
               </button>
             </div>
-            <p class="text-zinc-700 dark:text-neutral-300 text-sm italic bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-black/5 dark:border-white/5">
+            <p class="text-zinc-700 dark:text-neutral-300 text-sm italic bg-white/50 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5">
               "${bookmark.note}"
             </p>
             <div class="mt-4 text-[10px] text-zinc-500 dark:text-neutral-600 tracking-widest uppercase">
@@ -752,7 +849,8 @@
             </div>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
       
       lucide.createIcons();
     }
